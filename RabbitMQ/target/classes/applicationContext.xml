@@ -1,0 +1,63 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+    http://www.springframework.org/schema/rabbit/spring-rabbit-1.7.xsd
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+        <!--1 定义连接工厂-->
+    <rabbit:connection-factory id="connectionFactory" host="192.168.157.133" port="5672" username="luke" password="luke" virtual-host="/test"/>
+    <!--消息是发送到交换机还是队列-->
+        <!--定义 rabbitmq 的模板
+        queue="" 如果发送到队列则写队列
+         exchange=""  如果发送到交换机则写交换机
+         routing-key="" 定义路由的关键字
+        -->
+    <rabbit:template id="template" connection-factory="connectionFactory"  exchange="fanoutExchange" />
+
+
+
+    <rabbit:admin connection-factory="connectionFactory"/>
+        <!--定义队列-->
+    <rabbit:queue name="myQueue" auto-declare="true"/>
+        <!--定义交换机-->
+
+    <rabbit:fanout-exchange name="fanoutExchange" auto-declare="true">
+        <!--将队列绑定到交换机-->
+        <rabbit:bindings>
+            <rabbit:binding queue="myQueue">
+
+
+            </rabbit:binding>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+
+<!--定义监听容易,当收到消息的时候会执行内部的配置-->
+    <rabbit:listener-container connection-factory="connectionFactory">
+
+<!--定义到底哪个类里面的什么方法用于处理收到的消息-->
+        <rabbit:listener ref="consumer" method="test" queue-names="myQueue"/>
+    </rabbit:listener-container>
+    <!--定义消费者-->
+    <bean id="consumer" class="com.ddtech.spring.MyConsumer"/>
+
+
+<!--
+    <rabbit:direct-exchange name="directExchange" durable="true" auto-delete="false">
+
+        <rabbit:bindings>
+            <rabbit:binding queue="myQueue" key="key1">
+
+
+            </rabbit:binding>
+        </rabbit:bindings>
+    </rabbit:direct-exchange>-->
+
+   <!-- <rabbit:topic-exchange name="topicExchange" durable="true" auto-delete="false">
+
+        <rabbit:bindings>
+           <rabbit:binding pattern="dfasfsd.*" queue="myQueue"/>
+        </rabbit:bindings>
+    </rabbit:topic-exchange>-->
+
+</beans>
